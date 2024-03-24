@@ -15,7 +15,7 @@ After changing the version of the Tensorflow library several times, I came to th
 With its help, we can create a model of a neural network consisting of any number of layers containing any number of neurons.
 Currently, it is possible to construct linear networks (so-called dense networks), but the work is ongoing and in the near future I will expand it with the possibility of constructing convolutional neural networks.
 We have a number of activation functions at our disposal: linear function, hyperbolic tangent, sigmoid, relu, elu, softmax.
-There are three loss functions available: mean squared error, mean absolute error and categorical cross entropy.
+There are three loss functions available: mean squared error, mean absolute error, binary and categorical cross entropy.
 Currently, only one method for optimizing (training) the network is available, it is the stochastic gradient descent method.
 
 **Let's see some code.**
