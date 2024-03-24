@@ -31,4 +31,4 @@ def binary_cross_entropy(y_true, y_pred):
     return -np.sum(y_true * np.log(y_pred + 10**-10)) - np.sum((1 - y_true) * np.log((1 - y_pred) + 10**-10))
 
 def d_binary_cross_entropy(y_true, y_pred):          
-    return -y_true/(y_pred + 10**-10)
+    return -y_true/(y_pred  + 10**-10) + (1 - y_true) / (1 - y_pred + 10**-10)
