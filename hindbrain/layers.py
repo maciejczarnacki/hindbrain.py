@@ -26,15 +26,6 @@ class InputLayer():
             self.forward_output = x
         return self.forward_output
     
-class FlattenLayer:
-    def __init__(self, size):
-        self.size = size
-        self.layer_name = 'input_layer'
-        self.forward_output = None
-    
-    def forward(self, x):
-        self.forward_output = x.flatten()
-        return self.forward_output
 
 class LinearLayer:
     def __init__(self, size, trainable=True):
@@ -49,10 +40,14 @@ class LinearLayer:
         self.trainable = trainable
         self.layer_name = 'linear_layer'
         self.x = None
-        # momentum will be added later
-        # self.vb = 0
-        # self.vw = 0
-        # self.momentum = 0
+        # momentum parameters
+        self.vb = 0 # velocity of biases change
+        self.vw = 0 # velocity of weights change
+        # rmsprop parameters
+        self.sb = 0 # exponentially weighted average of the squared gradients 
+        self.sw = 0
+        # adam parameters
+        self.t = 0
     
     def forward(self, x):
         self.x = x
@@ -61,6 +56,23 @@ class LinearLayer:
         return self.forward_output
 
 # work in progress
+class Dropout:
+    def __init__(self, dropout_rate, trainable=True):
+        self.dropout_rate = dropout_rate
+        self.mask = None
+
+    def forward(self, x):
+        self.x = x
+        self.forward_input = x
+        self.mask = np.random.binomial([np.ones_like(self.x)],(1-self.dropout_rate))[0]  / (1-self.dropout_rate)
+        self.forward_output = np.multiply(self.x, self.mask)
+        self.forward_output /= (1.0 - self.dropout_rate)
+        return self.forward_output
+    
+    def backward(self):
+        pass
+
+
 class ConvLayer2D:
     def __init__(self, kernel_size, stride=(1, 1), padding='valid'):
         self.input_size = None

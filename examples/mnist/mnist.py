@@ -1,5 +1,7 @@
 import hindbrain as hb
 import numpy as np
+import matplotlib as plt
+from sklearn.metrics import confusion_matrix
 import struct
 from array import array
 
@@ -38,6 +40,7 @@ def load_image_data(filepath):
 # training dataset
 train_labels = load_data(train_labels_path)
 train_images = load_image_data(train_images_path)
+# train_images_flat = hb.tools.flatten(train_images)
 
 train_images_scaled = train_images/255
 
@@ -45,14 +48,13 @@ train_images_scaled = train_images/255
 
 test_labels = load_data(test_labels_path)
 test_images = load_image_data(test_images_path)
+# test_images_flat = hb.tools.flatten(test_images)
 
 test_images_scaled = test_images/255
 
-# function for one hot labels convertion
-def one_hot(x, depth: int):
-  return np.take(np.eye(depth), x, axis=0)
 
-train_labels_one_hot = one_hot(train_labels, depth=10)
+train_labels_one_hot = hb.tools.one_hot(train_labels, depth=10)
+
 
 
 # neural network model with hindbrain pakage
@@ -60,29 +62,44 @@ train_labels_one_hot = one_hot(train_labels, depth=10)
 mnist_model = hb.Model()
 
 mnist_model.add_layer(hb.InputLayer(784, flatten=True))
-mnist_model.add_layer(hb.LinearLayer(300), activation='tanh')
-mnist_model.add_layer(hb.LinearLayer(100), activation='tanh')
+mnist_model.add_layer(hb.LinearLayer(512), activation='tanh')
+mnist_model.add_layer(hb.LinearLayer(512), activation='tanh')
+mnist_model.add_layer(hb.LinearLayer(256), activation='tanh')
+mnist_model.add_layer(hb.LinearLayer(256), activation='tanh')
 mnist_model.add_layer(hb.LinearLayer(10), activation='softmax')
 
 mnist_model.summary()
 
-mnist_model.build(loss='categorical_cross_entropy', learning_rate=0.001)
+mnist_model.build(loss='categorical_cross_entropy', optimizer='SGD', learning_rate=0.0125, momentum=0.9, beta=0.999)
 
-for i in range(2):
+for i in range(7):
     for data, label in zip(train_images_scaled, train_labels_one_hot):
         mnist_model.train(data, label, epochs=1)
 
 
 # model accuracy evaluation on testing data
+y_preds =[]
+
 
 c = 0
 for z in range(10000):
     a = np.argmax(mnist_model.predict(test_images_scaled[z]))
+    y_preds.append(a)
     b = test_labels[z]
     if a == b:
         c += 1
         
 print(f'Accuracy: {c/10000}')
+
+lab = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+# conf = confusion_matrix(test_labels, y_pred=y_preds, labels=lab)
+
+# print(conf)
+
+hb.draw_confusion_matrix(test_labels, y_preds, lab, path='mnist_confusion_matrix.png', savefig=True)
+
+
+
 
 
 
