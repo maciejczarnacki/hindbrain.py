@@ -76,13 +76,18 @@ A repository and an article about Pong are in preparation.
 ## To do list
 
 1. Batch version of nn algorithm
-2. More optimizers (Adam, momentum, etc...)
+2. <s>More optimizers (Adam, momentum, etc...)</s> - done
 3. Add convolutional layers
 4. Build data type manager for models
 5. Write good documentation
 6. Add recurent neural networks
 7. Write a few excamples with benchmarks
 8. Parallel computation module
+
+## Done
+
+05.04.2024 -    I have added optimizers - SGD with momentum, RMSprop and Adam.
+                Now it is possible to choose weights initializer (Glorot or He normal and uniform)
 
 ## Licence
 
