@@ -46,16 +46,3 @@ emnist_dict = {0: '0',
  44: 'q',
  45: 'r',
  46: 't'}
-
-emnist_labels_list = []
-
-for i in range(46):
-    emnist_labels_list.append(emnist_dict[i])
-
-print(emnist_labels_list)
-
-################################# result
-
-""" 
-emnist_labels_list = []
- """
