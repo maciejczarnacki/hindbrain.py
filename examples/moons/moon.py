@@ -1,8 +1,6 @@
 from sklearn.datasets import make_moons
 from sklearn.model_selection import train_test_split
 
-import numpy as np
-
 import hindbrain as hb
 
 X, y = make_moons(n_samples=5000, random_state=42, noise=0.1)
@@ -13,7 +11,6 @@ moons_model = hb.Model(name='Moons')
 moons_model.add_layer(hb.InputLayer(2))
 moons_model.add_layer(hb.LinearLayer(10), activation='tanh')
 moons_model.add_layer(hb.LinearLayer(10), activation='tanh')
-# moons_model.add_layer(hb.LinearLayer(20), activation='relu')
 moons_model.add_layer(hb.LinearLayer(1), activation='sigmoid')
 
 moons_model.build(loss='binary_cross_entropy', optimizer='SGD', learning_rate=0.1   , momentum=0.9)

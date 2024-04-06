@@ -17,6 +17,7 @@ def softmax(x: np.ndarray) -> np.ndarray:
     x_ = np.exp(x-A) / np.exp(x-A).sum()
     return x_
 
+# Softamx for minibatches
 def softmax_b(x: np.ndarray) -> np.ndarray:
     x_ = np.asarray([softmax(a) for a in x])
     return x_
@@ -49,6 +50,7 @@ def d_softmax(x: np.ndarray) -> np.ndarray:
     x_ = first_step * (np.identity(first_step.size) - first_step.transpose())
     return x_
 
+# Softmax derivation for minibatches
 def d_softmax_b(x: np.ndarray) -> np.ndarray:
     x_ = np.asarray([[d_softmax(a) for a in x]])
     return x_
