@@ -16,7 +16,8 @@ With its help, we can create a model of a neural network consisting of any numbe
 Currently, it is possible to construct linear networks (so-called dense networks), but the work is ongoing and in the near future I will expand it with the possibility of constructing convolutional neural networks.
 We have a number of activation functions at our disposal: linear function, hyperbolic tangent, sigmoid, relu, elu, softmax.
 There are three loss functions available: mean squared error, mean absolute error, binary and categorical cross entropy.
-Currently, only one method for optimizing (training) the network is available, it is the stochastic gradient descent method.
+Currently, three methods for optimizing (training) the network are available: Stochastic Gradient Descent with momentum,
+Root Mean Squared Propagation and one variation of the Adam - Adaptive Moment Estimation  optimizer AMSGrad.
 
 **Let's see some code.**
 
@@ -35,15 +36,15 @@ my_model.add_layer(hb.LinearLayer(20), 'relu')
 my_model.add_layer(hb.LinearLayer(20), 'relu')
 my_model.add_layer(hb.LinearLayer(1), 'sigmoid')
 
-my_model.build(loss='mse', learning_rate=0.15)
+my_model.build(loss='mse', optimizer='SGD', learning_rate=0.15, momentum=0.9, initializer='he_normal')
 ```
 
 3. Neural network learning in a loop
 
 ```python
-for i in range(500):
+for epoch in range(500):
     for input, label in zip(inputs, labels):
-        my_model.train(input, label, epochs=1)
+        my_model.train(input, label)
 ```
 
 4. Getting predictions from learned model
