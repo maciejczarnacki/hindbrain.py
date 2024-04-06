@@ -43,6 +43,8 @@ class LinearLayer:
         # momentum parameters
         self.vb = 0 # velocity of biases change
         self.vw = 0 # velocity of weights change
+        self.sw_max = 0
+        self.sb_max = 0
         # rmsprop parameters
         self.sb = 0 # exponentially weighted average of the squared gradients 
         self.sw = 0

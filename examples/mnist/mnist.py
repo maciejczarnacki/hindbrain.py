@@ -70,11 +70,13 @@ mnist_model.add_layer(hb.LinearLayer(10), activation='softmax')
 
 mnist_model.summary()
 
-mnist_model.build(loss='categorical_cross_entropy', optimizer='SGD', learning_rate=0.0125, momentum=0.9, beta=0.999)
+mnist_model.build(loss='categorical_cross_entropy', optimizer='SGD', learning_rate=0.0125, momentum=0.9)
 
-for i in range(7):
-    for data, label in zip(train_images_scaled, train_labels_one_hot):
-        mnist_model.train(data, label, epochs=1)
+for epoch in range(4):
+    for n, (data, label) in enumerate(zip(train_images_scaled, train_labels_one_hot)):
+        mnist_model.train(data, label)
+        if n%200 == 0:
+            print(f'epoch: {epoch}, step: {n}, loss: {mnist_model.loss_value}')
 
 
 # model accuracy evaluation on testing data

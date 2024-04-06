@@ -49,7 +49,7 @@ class Model:
               learning_rate: float = 0.001, 
               momentum: float = 0.9, 
               beta: float = 0.999, 
-              epsilon: float = 10**(-8), 
+              epsilon: float = 10**(-7), 
               initializer: str ='he_normal') -> None:
         # generate weights and biases
         self.loss = loss
@@ -153,7 +153,7 @@ class Model:
                             delta = dx * dA
                         dw = np.dot(layer.forward_input.T, delta)
                         db = 1 * delta
-                        self.optimizer.update(layer.weights, layer.biases,dw, db, layer.sw, layer.sb, layer.vw, layer.vb, layer.t)
+                        self.optimizer.update(layer.weights, layer.biases,dw, db, layer.sw, layer.sb, layer.vw, layer.vb, layer.sw_max, layer.sb_max)
                     elif number != 1:
                         w_T = self.model[number+1][1].weights.T
                         dA = self.activation_function_derivative(activation, layer.forward_output)
@@ -161,7 +161,7 @@ class Model:
                         delta = dx * dA
                         dw = np.dot(layer.forward_input.T, delta)
                         db = 1 * delta
-                        self.optimizer.update(layer.weights, layer.biases,dw, db, layer.sw, layer.sb, layer.vw, layer.vb, layer.t)
+                        self.optimizer.update(layer.weights, layer.biases,dw, db, layer.sw, layer.sb, layer.vw, layer.vb, layer.sw_max, layer.sb_max)
                    
 
     # work with batches

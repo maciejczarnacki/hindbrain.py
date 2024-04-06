@@ -13,7 +13,8 @@ def elu(x: np.ndarray, alpha: float = 0.1) -> np.ndarray:
     return out_
     
 def softmax(x: np.ndarray) -> np.ndarray:
-    x_ = np.exp(x) / np.exp(x).sum()
+    A = np.max(x)
+    x_ = np.exp(x-A) / np.exp(x-A).sum()
     return x_
 
 def softmax_b(x: np.ndarray) -> np.ndarray:
