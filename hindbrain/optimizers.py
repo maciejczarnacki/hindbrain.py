@@ -27,11 +27,11 @@ class RMSpopr:
         self.eps = eps
 
     def update(self, weights, biases, dw, db, *args):
-        squered_grad_w, squered_grad_b, _, _, _, _ = args
-        squered_grad_w = self.beta * squered_grad_w + (1 - self.beta) * (dw)**2
-        squered_grad_b = self.beta * squered_grad_b + (1 - self.beta) * (db)**2
-        weights -= self.learning_rate * dw / (squered_grad_w + self.eps)**0.5
-        biases -= self.learning_rate * db / (squered_grad_b + self.eps)**0.5
+        squared_grad_w, squared_grad_b, _, _, _, _ = args
+        squared_grad_w = self.beta * squared_grad_w + (1 - self.beta) * (dw)**2
+        squared_grad_b = self.beta * squared_grad_b + (1 - self.beta) * (db)**2
+        weights -= self.learning_rate * dw / (squared_grad_w + self.eps)**0.5
+        biases -= self.learning_rate * db / (squared_grad_b + self.eps)**0.5
 
 class Adam:
     '''
@@ -57,7 +57,7 @@ class Adam:
         biases -= self.learning_rate * velocity_b / (np.sqrt(squared_grad_b_max) + self.eps)
 
 """     def update(self, weights, biases, dw, db, *args):
-        # Adam from publication 
+        # Original Adam from publication 
         # t += 1
             # squared_grad_w = self.beta * squared_grad_w + (1 - self.beta) * (dw.T @ dw)
             # squared_grad_b = self.beta * squared_grad_b + (1 - self.beta) * (db.T @ db)
