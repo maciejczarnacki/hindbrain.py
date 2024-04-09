@@ -6,11 +6,11 @@ import struct
 from array import array
 
 # mnist dataset preparation
-train_labels_path = 'train-labels.idx1-ubyte'
-train_images_path = 'train-images.idx3-ubyte'
+train_labels_path = 'examples/mnist/train-labels.idx1-ubyte'
+train_images_path = 'examples/mnist/train-images.idx3-ubyte'
 
-test_labels_path = 't10k-labels.idx1-ubyte'
-test_images_path = 't10k-images.idx3-ubyte'
+test_labels_path = 'examples/mnist/t10k-labels.idx1-ubyte'
+test_images_path = 'examples/mnist/t10k-images.idx3-ubyte'
 
 # function for loading labels data from file
 def load_data(filepath):
@@ -48,7 +48,6 @@ train_images_scaled = train_images/255
 
 test_labels = load_data(test_labels_path)
 test_images = load_image_data(test_images_path)
-# test_images_flat = hb.tools.flatten(test_images)
 
 test_images_scaled = test_images/255
 
@@ -56,42 +55,51 @@ test_images_scaled = test_images/255
 train_labels_one_hot = hb.tools.one_hot(train_labels, depth=10)
 
 
-
-# neural network model with hindbrain pakage
+# neural network model build with hindbrain pakage
 
 mnist_model = hb.Model()
 
 mnist_model.add_layer(hb.InputLayer(784, flatten=True))
-mnist_model.add_layer(hb.LinearLayer(512), activation='tanh')
-mnist_model.add_layer(hb.LinearLayer(512), activation='tanh')
-mnist_model.add_layer(hb.LinearLayer(256), activation='tanh')
-mnist_model.add_layer(hb.LinearLayer(256), activation='tanh')
+mnist_model.add_layer(hb.LinearLayer(128), activation='relu')
+mnist_model.add_layer(hb.LinearLayer(128), activation='relu')
+mnist_model.add_layer(hb.LinearLayer(128), activation='relu')
 mnist_model.add_layer(hb.LinearLayer(10), activation='softmax')
 
 mnist_model.summary()
 
-mnist_model.build(loss='categorical_cross_entropy', optimizer='SGD', learning_rate=0.0125, momentum=0.9)
+mnist_model.build(loss='categorical_cross_entropy', optimizer='SGD', learning_rate=0.0001, momentum=0.9, beta=0.999)
 
-for epoch in range(4):
+av_loss = 0
+total_loss = 0
+m = 1
+for epoch in range(3):
     for n, (data, label) in enumerate(zip(train_images_scaled, train_labels_one_hot)):
         mnist_model.train(data, label)
+        total_loss = total_loss + mnist_model.loss_value
+        av_loss = total_loss / m
+        m += 1
+        y_test = []
         if n%200 == 0:
-            print(f'epoch: {epoch}, step: {n}, loss: {mnist_model.loss_value}')
+            for test in test_images[:200]:
+                y_test.append(np.argmax(mnist_model.predict(test)))
+            acc = hb.accuracy(test_labels[:200], y_test)
+            print(f'epoch: {epoch}, step: {n}, loss: {mnist_model.loss_value:.6f}, av_loss: {av_loss:.4f}, accuracy: {acc:.3f}')
 
 
 # model accuracy evaluation on testing data
-y_preds =[]
+y_preds = []
+
 
 
 c = 0
 for z in range(10000):
     a = np.argmax(mnist_model.predict(test_images_scaled[z]))
     y_preds.append(a)
-    b = test_labels[z]
-    if a == b:
-        c += 1
+
+acc = hb.accuracy(test_labels, y_preds)
+print('Total accuracy test: ', acc)
         
-print(f'Accuracy: {c/10000}')
+# print(f'Accuracy: {c/10000}')
 
 lab = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 # conf = confusion_matrix(test_labels, y_pred=y_preds, labels=lab)

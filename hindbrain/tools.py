@@ -23,7 +23,6 @@ def flatten(X: np.ndarray) -> np.ndarray:
 def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
    """
    Accuracy test for a true labels and preds comparison.
-   y_true and y_pred must be one hot encoded. 
    """
    equality = np.equal(y_true, y_pred)
    accuracy = np.mean(equality.astype(np.float32))
