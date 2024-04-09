@@ -23,8 +23,9 @@ from .losses import (mse,
                      d_categorical_cross_entropy, 
                      binary_cross_entropy, 
                      d_binary_cross_entropy)
-from .optimizers import SGD, RMSpopr, Adam
+from .optimizers import SGD, RMSpopr, Adam, Amsgrad
 from .initializers import weights_init, biases_init
+from .tools import one_hot, flatten, accuracy
 
 class Model:
     def __init__(self, name: str ='Default_model') -> None:
@@ -69,7 +70,7 @@ class Model:
             layer.weights = self.weights[i]
             layer.biases = self.biases[i]
         # chose optimizer (SGD, RMSprop, Adam)
-        self.chose_optimizer(optimizer)
+        self.choose_optimizer(optimizer)
          
     def activation_function(self, 
                             activation: str, 
@@ -99,16 +100,22 @@ class Model:
             return None
         return output
     
-    def chose_optimizer(self, optimizer: str) -> None:
+    def choose_optimizer(self, optimizer: str) -> None:
         if optimizer == 'SGD': self.optimizer = SGD(self.learning_rate, 
                                                     self.momentum)
         elif optimizer == 'RMSprop': self.optimizer = RMSpopr(self.learning_rate, 
                                                               self.beta, 
                                                               self.epsilon)
-        elif optimizer == 'Adam': self.optimizer = Adam(self.learning_rate, 
-                                                        self.beta)
+        elif optimizer == 'Adam': self.optimizer = Adam(self.learning_rate,
+                                                        self.momentum, 
+                                                        self.beta,
+                                                        self.epsilon)
+        elif optimizer == 'AMSgrad': self.optimizer = Amsgrad(self.learning_rate,
+                                                self.momentum, 
+                                                self.beta,
+                                                self.epsilon)
         else:
-            raise ValueError('Unknown optimizer, choose from SGD, RMSprop or Adam.')
+            raise ValueError('Unknown optimizer, choose from SGD, RMSprop, Adam or AMSgrad.')
     
     def predict(self, x: np.ndarray) -> np.ndarray:
         x_ = np.copy(x)
@@ -153,7 +160,7 @@ class Model:
                             delta = dx * dA
                         dw = np.dot(layer.forward_input.T, delta)
                         db = 1 * delta
-                        self.optimizer.update(layer.weights, layer.biases,dw, db, layer.sw, layer.sb, layer.vw, layer.vb, layer.sw_max, layer.sb_max)
+                        self.optimizer.update(layer, dw, db)
                     elif number != 1:
                         w_T = self.model[number+1][1].weights.T
                         dA = self.activation_function_derivative(activation, layer.forward_output)
@@ -161,7 +168,7 @@ class Model:
                         delta = dx * dA
                         dw = np.dot(layer.forward_input.T, delta)
                         db = 1 * delta
-                        self.optimizer.update(layer.weights, layer.biases,dw, db, layer.sw, layer.sb, layer.vw, layer.vb, layer.sw_max, layer.sb_max)
+                        self.optimizer.update(layer, dw, db)
                    
 
     # work with batches

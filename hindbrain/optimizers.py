@@ -9,13 +9,19 @@ class SGD:
     def __init__(self, learning_rate = 0.001, momentum=0.9):
         self.learning_rate = learning_rate
         self.momentum = momentum
+    
+    def update(self, layer, dw, db, *args):
+        layer.vw = (1 - self.momentum) * dw + self.momentum * layer.vw
+        layer.vb = (1 - self.momentum) * db + self.momentum * layer.vb
+        layer.weights -= self.learning_rate * layer.vw
+        layer.biases -= self.learning_rate * layer.vb
 
-    def update(self, weights, biases, dw, db, *args):
-        _, _, velocity_w, velocity_b, _, _  = args
-        velocity_w = (1 - self.momentum) * dw + self.momentum * velocity_w
-        velocity_b = (1 - self.momentum) * db + self.momentum * velocity_b
-        weights -= self.learning_rate * velocity_w
-        biases -= self.learning_rate * velocity_b
+"""     # SGD algorithm from Tensorflow
+        layer.vw = self.momentum * layer.vw - self.learning_rate * dw
+        layer.weights = layer.weights + layer.vw
+        layer.vb = self.momentum * layer.vb - self.learning_rate * db
+        layer.biases = layer.biases + layer.vb """
+
 
 class RMSpopr:
     '''
@@ -26,12 +32,35 @@ class RMSpopr:
         self.beta = beta
         self.eps = eps
 
-    def update(self, weights, biases, dw, db, *args):
-        squared_grad_w, squared_grad_b, _, _, _, _ = args
-        squared_grad_w = self.beta * squared_grad_w + (1 - self.beta) * (dw)**2
-        squared_grad_b = self.beta * squared_grad_b + (1 - self.beta) * (db)**2
-        weights -= self.learning_rate * dw / (squared_grad_w + self.eps)**0.5
-        biases -= self.learning_rate * db / (squared_grad_b + self.eps)**0.5
+    def update(self, layer, dw, db, *args):
+        layer.sw = self.beta * layer.sw + (1 - self.beta) * (dw)**2
+        layer.sb = self.beta * layer.sb + (1 - self.beta) * (db)**2
+        layer.weights -= self.learning_rate * dw / (layer.sw + self.eps)**0.5
+        layer.biases -= self.learning_rate * db / (layer.sb + self.eps)**0.5
+
+
+class Amsgrad:
+    '''
+    Variant of ADAM gradient descent neural network weights/biases update algorithm.
+    AMSGrad described in - S. J. Reddi, S. Kale, S. Kumar, On the Convergence of Adam and Beyond, 2019,
+    https://doi.org/10.48550/arXiv.1904.09237
+    '''
+    def __init__(self, learning_rate=0.001, momentum=0.9, beta=0.999, eps=10**(-7)):
+        self.learning_rate = learning_rate
+        self.momentum = momentum
+        self.beta = beta
+        self.eps = eps
+
+    def update(self, layer, dw, db, *args):
+        layer.sw = self.beta * layer.sw + (1 - self.beta) * (dw)**2
+        layer.sb = self.beta * layer.sb + (1 - self.beta) * (db)**2
+        layer.vw = (1 - self.momentum) * dw + self.momentum * layer.vw
+        layer.vb = (1 - self.momentum) * db + self.momentum * layer.vb
+        layer.sw_max = np.maximum(layer.sw_max, layer.sw)
+        layer.sb_max = np.maximum(layer.sb_max, layer.sb)
+        layer.weights -= self.learning_rate * layer.vw / (np.sqrt(layer.sw_max) + self.eps)
+        layer.biases -= self.learning_rate * layer.vb / (np.sqrt(layer.sb_max) + self.eps)
+
 
 class Adam:
     '''
@@ -45,30 +74,19 @@ class Adam:
         self.beta = beta
         self.eps = eps
 
-    def update(self, weights, biases, dw, db, *args):
-        squared_grad_w, squared_grad_b, velocity_w, velocity_b, squared_grad_w_max, squared_grad_b_max = args
-        squared_grad_w = self.beta * squared_grad_w + (1 - self.beta) * (dw)**2
-        squared_grad_b = self.beta * squared_grad_b + (1 - self.beta) * (db)**2
-        velocity_w = (1 - self.momentum) * dw + self.momentum * velocity_w
-        velocity_b = (1 - self.momentum) * db + self.momentum * velocity_b
-        squared_grad_w_max = np.maximum(squared_grad_w_max, squared_grad_w)
-        squared_grad_b_max = np.maximum(squared_grad_b_max, squared_grad_b)
-        weights -= self.learning_rate * velocity_w / (np.sqrt(squared_grad_w_max) + self.eps)
-        biases -= self.learning_rate * velocity_b / (np.sqrt(squared_grad_b_max) + self.eps)
-
-"""     def update(self, weights, biases, dw, db, *args):
+    def update(self, layer, dw, db, *args):
         # Original Adam from publication 
-        # t += 1
-            # squared_grad_w = self.beta * squared_grad_w + (1 - self.beta) * (dw.T @ dw)
-            # squared_grad_b = self.beta * squared_grad_b + (1 - self.beta) * (db.T @ db)
-            # velocity_w = self.momentum * velocity_w + (1 - self.momentum) * dw
-            # velocity_b = self.momentum * velocity_b + (1 - self.momentum) * db
-            # Sw_t = squered_grad_w / (1 - np.power(self.beta, t))
-            # Sb_t = squered_grad_b / (1 - np.power(self.beta, t))
-            # Vw_t = velocity_w / (1 - np.power(self.momentum,t))
-            # Vb_t = velocity_b / (1 - np.power(self.momentum,t))
-            # weights -= self.learning_rate * Vw_t / (np.sqrt(Sw_t) + self.eps)
-            # biases -= self.learning_rate * Vb_t / (np.sqrt(Sb_t) + self.eps) """
+        layer.t += 1
+        layer.sw = self.beta * layer.sw + (1 - self.beta) * dw ** 2
+        layer.sb = self.beta * layer.sb + (1 - self.beta) * db ** 2
+        layer.vw = self.momentum * layer.vw + (1 - self.momentum) * dw
+        layer.vb = self.momentum * layer.vb + (1 - self.momentum) * db
+        Sw_t = layer.sw / (1 - np.power(self.beta, layer.t))
+        Sb_t = layer.sb/ (1 - np.power(self.beta, layer.t))
+        Vw_t = layer.vw / (1 - np.power(self.momentum,layer.t))
+        Vb_t = layer.vb / (1 - np.power(self.momentum,layer.t))
+        layer.weights -= self.learning_rate * Vw_t / (np.sqrt(Sw_t) + self.eps)
+        layer.biases -= self.learning_rate * Vb_t / (np.sqrt(Sb_t) + self.eps)
 
 
 
