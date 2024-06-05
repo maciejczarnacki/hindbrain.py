@@ -266,12 +266,16 @@ class Model:
                             #     layer.biases -= self.learning_rate * layer.vb
  """
 
-    def summary(self) -> None:
-        print('Total number of layers: ', len(self.model))
-        print('Model name: ', self.name)
+    def summary(self) -> str:
+        self.summary_text = (f'Model name: {self.name}\n'
+                        + f'Total number of layers: {len(self.model)}\n'
+                        + f'Learning parameters:\n'
+                        + f'Loss: {self.loss}, optimizer: {self.optimizer.name}, learning rate: {self.learning_rate}, momentum: {self.momentum}, beta: {self.beta}\n'
+                        + f'Model structure\n')
         for number, layer, activation in self.model:
-            print(f'Layer number: {number}, layer name: {layer.layer_name}, number of neurons: {layer.size}, activation: {activation}')
-        print(f'Loss: {self.loss}')
+            self.summary_text += f'Layer number: {number}, layer name: {layer.layer_name}, number of neurons: {layer.size}, activation: {activation}\n'
+        print(self.summary_text)
+        return self.summary_text
 
 
 def save_model(path: str, model: Model) -> None:

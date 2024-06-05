@@ -9,6 +9,7 @@ class SGD:
     def __init__(self, learning_rate = 0.001, momentum=0.9):
         self.learning_rate = learning_rate
         self.momentum = momentum
+        self.name = 'SGD'
     
     def update(self, layer, dw, db, *args):
         layer.vw = (1 - self.momentum) * dw + self.momentum * layer.vw
@@ -31,6 +32,7 @@ class RMSpopr:
         self.learning_rate = learning_rate
         self.beta = beta
         self.eps = eps
+        self.name = 'RMSprop'
 
     def update(self, layer, dw, db, *args):
         layer.sw = self.beta * layer.sw + (1 - self.beta) * (dw)**2
@@ -50,6 +52,7 @@ class Amsgrad:
         self.momentum = momentum
         self.beta = beta
         self.eps = eps
+        self.name = 'AMSgrad'
 
     def update(self, layer, dw, db, *args):
         layer.sw = self.beta * layer.sw + (1 - self.beta) * (dw)**2
@@ -73,6 +76,7 @@ class Adam:
         self.momentum = momentum
         self.beta = beta
         self.eps = eps
+        self.name = 'Adam'
 
     def update(self, layer, dw, db, *args):
         # Original Adam from publication 
