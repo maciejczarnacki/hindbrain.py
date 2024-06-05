@@ -267,6 +267,9 @@ class Model:
  """
 
     def summary(self) -> str:
+        """
+        Return and print out model structure and learning parameters like learning rate, optimizer, momentum etc...
+        """
         self.summary_text = (f'Model name: {self.name}\n'
                         + f'Total number of layers: {len(self.model)}\n'
                         + f'Learning parameters:\n'
