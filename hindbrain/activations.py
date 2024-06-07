@@ -9,7 +9,7 @@ def relu(x: np.ndarray) -> np.ndarray:
 
 def elu(x: np.ndarray, alpha: float = 0.1) -> np.ndarray:
     x_ = np.copy(x)
-    out_ = np.maximum(alpha*(np.exp(x_)-1), x_)
+    out_ = np.where(x_>0, x_, alpha*(np.exp(x_)-1))
     return out_
     
 def softmax(x: np.ndarray) -> np.ndarray:
@@ -42,7 +42,7 @@ def d_relu(x: np.ndarray) -> np.ndarray:
 
 def d_elu(x: np.ndarray, alpha: float = 0.1) -> np.ndarray:
     x_ = np.copy(x)
-    out_ = np.maximum(alpha*np.exp(x_), 1)
+    out_ = np.where(x_>0, np.ones_like(x_), alpha*np.exp(x_))
     return out_
 
 def d_softmax(x: np.ndarray) -> np.ndarray:
