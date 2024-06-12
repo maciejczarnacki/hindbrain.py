@@ -116,6 +116,10 @@ class Model:
                                                 self.epsilon)
         else:
             raise ValueError('Unknown optimizer, choose from SGD, RMSprop, Adam or AMSgrad.')
+        
+    def training_info(self, epoch, step, loss, accuracy, freq):
+        if (step + 1) % freq == 0:
+            print(f'epoch: {epoch + 1}, step: {step + 1}, loss: {loss}')    
     
     def predict(self, x: np.ndarray) -> np.ndarray:
         x_ = np.copy(x)
@@ -129,47 +133,53 @@ class Model:
             return x_
 
     #train methode without batches
-    def train(self, x: np.ndarray, labels: np.ndarray, epochs: int = 1) -> None: 
+    def train(self, x: np.ndarray, labels: np.ndarray, epochs: int = 1, shuffle: bool = True, info_freq: int = 1) -> None: 
         if self.model != None:
             for ep in range(epochs):
-                preds = self.predict(x)
-                # backpropagation steps layer by layer
-                if self.loss == 'mse': 
-                    loss = mse(preds, labels)
-                    dx = d_mse(preds, labels)
-                elif self.loss == 'mae': 
-                    loss = mae(preds, labels)
-                    dx = d_mae(preds, labels)
-                elif self.loss == 'categorical_cross_entropy':
-                    loss = categorical_cross_entropy(labels, preds)
-                    dx = d_categorical_cross_entropy(labels, preds)
-                elif self.loss == 'binary_cross_entropy':
-                    loss = binary_cross_entropy(labels, preds)
-                    dx = d_binary_cross_entropy(labels, preds)
-                else: 
-                    print('Unknown loss function')
-                    return None
-                # print('loss', round(loss, 6))
-                self.loss_value = loss
-                for i, (number, layer, activation) in enumerate(reversed(self.model[1:])):
-                    if number == len(self.model) - 1:
-                        if self.loss == 'categorical_cross_entropy':
-                            delta = np.sum(dx * self.activation_function_derivative(activation, layer.forward_output), axis=1).reshape((-1, 1)).T
-                        else:
+                if shuffle == True:
+                    data = data_shuffler(x, labels)
+                else:
+                    data = list(zip(x, labels))
+                for n, d in enumerate(data):
+                    x_ = d[0]
+                    labels_ = d[1]
+                    # backpropagation steps layer by layer
+                    preds = self.predict(x_)
+                    if self.loss == 'mse': 
+                        loss = mse(preds, labels_)
+                        dx = d_mse(preds, labels_)
+                    elif self.loss == 'mae': 
+                        loss = mae(preds, labels_)
+                        dx = d_mae(preds, labels_)
+                    elif self.loss == 'categorical_cross_entropy':
+                        loss = categorical_cross_entropy(labels_, preds)
+                        dx = d_categorical_cross_entropy(labels_, preds)
+                    elif self.loss == 'binary_cross_entropy':
+                        loss = binary_cross_entropy(labels_, preds)
+                        dx = d_binary_cross_entropy(labels_, preds)
+                    else: 
+                        print('Unknown loss function')
+                        return None
+                    self.training_info(ep, n, round(loss, 6), None, info_freq)
+                    for i, (number, layer, activation) in enumerate(reversed(self.model[1:])):
+                        if number == len(self.model) - 1:
+                            if self.loss == 'categorical_cross_entropy':
+                                delta = np.sum(dx * self.activation_function_derivative(activation, layer.forward_output), axis=1).reshape((-1, 1)).T
+                            else:
+                                dA = self.activation_function_derivative(activation, layer.forward_output)
+                                delta = dx * dA
+                            dw = np.dot(layer.forward_input.T, delta)
+                            db = 1 * delta
+                            self.optimizer.update(layer, dw, db)
+                        elif number != 1:
+                            w_T = self.model[number+1][1].weights.T
                             dA = self.activation_function_derivative(activation, layer.forward_output)
+                            dx = np.dot(delta, w_T)
                             delta = dx * dA
-                        dw = np.dot(layer.forward_input.T, delta)
-                        db = 1 * delta
-                        self.optimizer.update(layer, dw, db)
-                    elif number != 1:
-                        w_T = self.model[number+1][1].weights.T
-                        dA = self.activation_function_derivative(activation, layer.forward_output)
-                        dx = np.dot(delta, w_T)
-                        delta = dx * dA
-                        dw = np.dot(layer.forward_input.T, delta)
-                        db = 1 * delta
-                        self.optimizer.update(layer, dw, db)
-                   
+                            dw = np.dot(layer.forward_input.T, delta)
+                            db = 1 * delta
+                            self.optimizer.update(layer, dw, db)
+                    
 
     # work with batches
     """ def train(self, x, labels, epochs=1, batch_size = 1):
