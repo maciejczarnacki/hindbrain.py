@@ -25,7 +25,7 @@ from .losses import (mse,
                      d_binary_cross_entropy)
 from .optimizers import SGD, RMSpopr, Adam, Amsgrad
 from .initializers import weights_init, biases_init
-from .tools import one_hot, flatten, accuracy
+from .tools import one_hot, data_shuffler, flatten, accuracy
 
 class Model:
     def __init__(self, name: str ='Default_model') -> None:

@@ -4,6 +4,24 @@ import numpy as np
 def one_hot(x: np.ndarray, depth: int) -> np.ndarray:
   return np.take(np.eye(depth), x, axis=0)
 
+def data_shuffler(x: np.ndarray, y: np.ndarray) -> list:
+    """
+    Data shuffler for NN training
+
+    Parameters
+    ----------
+    x: input training data as numpy array
+
+    y: labels of training data as numpy array
+
+    Returns
+    ----------
+    List of shuffled zipped inputs and labels for training loop
+    """
+    z = list(zip(x, y))
+    np.random.shuffle(z)
+    return z
+
 # works in progress - (mini)batched dataset flattening
 def flatten(X: np.ndarray) -> np.ndarray:
     """
